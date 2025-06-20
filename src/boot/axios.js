@@ -1,24 +1,36 @@
-import { defineBoot } from '#q-app/wrappers'
-import axios from 'axios'
+import { defineBoot } from "#q-app/wrappers";
+import axios from "axios";
+import { LocalStorage } from "quasar";
 
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
-const api = axios.create({ baseURL: 'https://api.example.com' })
+export const baseURL = process.env.BASE_URL;
 
-export default defineBoot(({ app }) => {
-  // for use inside Vue files (Options API) through this.$axios and this.$api
+const api = axios.create({ baseURL });
 
-  app.config.globalProperties.$axios = axios
-  // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
-  //       so you won't necessarily have to import axios in each vue file
+export default defineBoot(async ({ app, router }) => {
+  app.config.globalProperties.$axios = axios;
+  app.config.globalProperties.$api = api;
 
-  app.config.globalProperties.$api = api
-  // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
-  //       so you can easily perform requests against your app's API
-})
+  router.beforeEach(async (to, from, next) => {
+    const auth = LocalStorage.getItem("auth");
+    const isAdminRoute = to.matched.some((record) => record.meta.isAdmin);
+    const isUserRoute = to.matched.some((record) => record.meta.isUser);
 
-export { api }
+    // Cegah akses ke halaman login jika sudah login
+    if (to.name === "login" && auth !== null && auth !== undefined) {
+      if (auth?.role === 1) return next({ name: "adminDashboard" });
+      if (auth?.role === 2) return next({ name: "userDashboard" });
+    }
+
+    if (isAdminRoute && (!auth || auth.role !== 1)) {
+      return next({ name: "login" });
+    }
+
+    if (isUserRoute && (!auth || auth.role !== 2)) {
+      return next({ name: "login" });
+    }
+
+    return next();
+  });
+});
+
+export { api };

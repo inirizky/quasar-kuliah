@@ -1,41 +1,92 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
-
-        <q-toolbar-title>
-          Quasar App
-        </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
+      <q-toolbar class="bg-grey-9 text-white">
+        <q-btn flat round dense @click="toggleLeftDrawer">
+          <q-icon name="menu" />
+        </q-btn>
+        <q-toolbar-title> Movie App </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
-      <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
+    <q-drawer v-model="leftDrawerOpen" show-if-above>
+      <q-list class="q-px-md q-mt-lg q-gutter-xs">
+        <!-- <q-item-label header> Essential Links </q-item-label> -->
 
-        <EssentialLink
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
+        <q-item
+          clickable
+          unelevated
+          exact
+          class=""
+          :to="{
+            name: 'adminDashboard',
+          }"
+          :class="[
+            {
+              'bg-primary text-white':
+                $route.name === 'adminDashboard' && !$q.dark.isActive,
+              'bg-grey-9 text-white':
+                $route.name === 'adminDashboard' && $q.dark.isActive,
+            },
+          ]"
+        >
+          <q-item-section avatar>
+            <q-icon name="home" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>Home</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item
+          clickable
+          unelevated
+          exact
+          class=""
+          :to="{
+            name: 'listTransaction',
+          }"
+          :class="[
+            {
+              'bg-primary text-white':
+                $route.name === 'listTransaction' && !$q.dark.isActive,
+              'bg-grey-9 text-white':
+                $route.name === 'listTransaction' && $q.dark.isActive,
+            },
+          ]"
+        >
+          <q-item-section avatar>
+            <q-icon name="list" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>Transaction</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-expansion-item icon="movie" label="Movies" default-opened>
+          <EssentialLink
+            v-for="link in movieLink"
+            :key="link.title"
+            v-bind="link"
+          />
+        </q-expansion-item>
+        <q-expansion-item icon="more" label="Genres">
+          <EssentialLink
+            v-for="link in genreLink"
+            :key="link.title"
+            v-bind="link"
+          />
+        </q-expansion-item>
+        <q-item clickable unelevated exact class="" @click="logout">
+          <q-item-section avatar>
+            <q-icon name="logout" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>Logout</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -46,57 +97,50 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
+import { ref } from "vue";
+import EssentialLink from "components/EssentialLink.vue";
+import { useRouter } from "vue-router";
+import { LocalStorage } from "quasar";
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
-  }
-]
+const router = useRouter();
 
-const leftDrawerOpen = ref(false)
+const movieLink = [
+  {
+    title: "Movie List",
+    // caption: "github.com/quasarframework",
+    icon: "chevron_right",
+    link: "movieList",
+  },
+  {
+    title: "Add Movie",
+    // caption: "github.com/quasarframework",
+    icon: "chevron_right",
+    link: "addMovie",
+  },
+];
+const genreLink = [
+  {
+    title: "Genre List",
+    // caption: "github.com/quasarframework",
+    icon: "chevron_right",
+    link: "genreList",
+  },
+  {
+    title: "Add Genre",
+    // caption: "github.com/quasarframework",
+    icon: "chevron_right",
+    link: "addGenre",
+  },
+];
 
-function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+const leftDrawerOpen = ref(false);
+
+function logout() {
+  LocalStorage.clear();
+  router.push("/login");
+}
+
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 </script>
